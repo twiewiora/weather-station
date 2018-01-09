@@ -13,11 +13,14 @@
 #define temperature_in_topic "js8837euf_temperature_in"
 #define temperature_out_topic "js8837euf_temperature_out"
 #define humidity_topic "js8837euf_humidity"
+#define motion_topic "js8837euf_motion"
 
 #define DHT_TYPE DHT11
 #define DHT_PIN 2
 
 #define DS18B20_PIN 5
+
+#define RIC_PIN 16
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -81,7 +84,7 @@ void loop() {
     Serial.print("New humidity:");
     Serial.println(String(hum).c_str());
   }
-    
+  
   DS18B20.requestTemperatures(); 
   float temp_out = DS18B20.getTempCByIndex(0);
   if (temp_out == 80 || temp_out == (-127)) {
@@ -90,13 +93,25 @@ void loop() {
     Serial.print("New temperature outdoor:");
     Serial.println(String(temp_out).c_str());
   }
-
+  
+  int isMove = digitalRead(RIC_PIN);
+  //low = no motion, high = motion
+  if (isMove == HIGH) {
+    Serial.println("RIC: Motion detected.");
+  }
   
   if (!client.connected()) {
     reconnect();
   }
   client.loop(); 
-  
+
+  if (isMove == HIGH) {
+    if(client.publish(motion_topic, String("ALARM").c_str())) {
+      Serial.println("Sent motion");
+    } else {
+      Serial.println("Didn't send motion");
+    }
+  }
   if(client.publish(temperature_in_topic, String(temp_in).c_str())) {
     Serial.println("Sent indoor temperature");
   } else {

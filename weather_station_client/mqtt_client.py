@@ -1,5 +1,4 @@
 import eventlet
-import json
 from flask import Flask, render_template
 from flask_mqtt import Mqtt
 from flask_socketio import SocketIO
@@ -22,17 +21,12 @@ bootstrap = Bootstrap(app)
 temperature_in = "js8837euf_temperature_in"
 temperature_out = "js8837euf_temperature_out"
 humidity = "js8837euf_humidity"
+motion = "js8837euf_motion"
 
 
 @app.route('/')
 def index():
     return render_template('index.html')
-
-
-# @socketio.on('publish')
-# def handle_publish(json_str):
-#     data = json.loads(json_str)
-#     mqtt.publish(data['topic'], data['message'])
 
 
 @socketio.on('subscribe')
@@ -41,6 +35,7 @@ def handle_subscribe():
     mqtt.subscribe(temperature_in)
     mqtt.subscribe(temperature_out)
     mqtt.subscribe(humidity)
+    mqtt.subscribe(motion)
 
 
 @mqtt.on_message()
